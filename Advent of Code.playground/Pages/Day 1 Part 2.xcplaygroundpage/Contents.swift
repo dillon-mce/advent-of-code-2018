@@ -1,11 +1,11 @@
 import UIKit
 
-func calculateFreq(_ string: String) -> Int? {
+func calculateFirstReusedFreq(_ string: String) -> Int? {
     let array = string.components(separatedBy: .whitespacesAndNewlines)
     var result: Int? = nil
     var frequency = 0
     let characterSet = CharacterSet(charactersIn: "+-")
-    var frequenciesHit: [Int] = [0]
+    var frequenciesHit: Set<Int> = Set(arrayLiteral: 0)
     var count = 0
     
     while result == nil {
@@ -21,7 +21,7 @@ func calculateFreq(_ string: String) -> Int? {
                 frequency -= number
             }
             if frequenciesHit.contains(frequency) { return frequency }
-            frequenciesHit.append(frequency)
+            frequenciesHit.insert(frequency)
         }
         print("\(count) times through the loop!")
     }
@@ -29,10 +29,10 @@ func calculateFreq(_ string: String) -> Int? {
     return result
 }
 
-let test1 = "+1 -1 +1"
-calculateFreq(test1)
+let test1 = "+1 -2 +3 +1"
+calculateFirstReusedFreq(test1)
 
-calculateFreq(day1Input)
+calculateFirstReusedFreq(day1Input)
 
 
 
