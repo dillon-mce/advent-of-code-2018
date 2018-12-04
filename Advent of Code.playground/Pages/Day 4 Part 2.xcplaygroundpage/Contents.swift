@@ -70,4 +70,18 @@ let guardId = 1777
 
 let answer = minute * guardId
 
+var mostMinutes: (key: Int, value: Int) = (0, 0)
+var consistentlySleepyGuard = ""
+for (guardId, dict) in minuteDict {
+    guard let max = dict.max(by: { $0.value < $1.value }) else { continue }
+    print("Guard \(guardId) was asleep at minute \(max.key) \(max.value) times")
+    if max.value > mostMinutes.value {
+        mostMinutes = max
+        consistentlySleepyGuard = guardId
+    }
+}
 
+print("—————————")
+print("Guard \(consistentlySleepyGuard) was the most consistently asleep at minute \(mostMinutes.key), \(mostMinutes.value) times")
+
+1889 * 31
