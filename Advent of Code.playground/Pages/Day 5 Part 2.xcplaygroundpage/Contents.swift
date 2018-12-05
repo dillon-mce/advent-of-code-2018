@@ -2,13 +2,10 @@ import Foundation
 
 func collapsePolymer(_ string: String) -> String {
     var array = Array(string)
-    print(array.count)
     var madeFullPass = false
     var madeToIndex = 0
     
     while !madeFullPass {
-        var lettersToRemove: [Int] = []
-        
         for i in madeToIndex..<array.count - 1 {
             let firstLetter = String(array[i])
             let secondLetter = String(array[i+1])
@@ -22,11 +19,31 @@ func collapsePolymer(_ string: String) -> String {
             }
         }
     }
+    
     return String(array)
+    
 }
 
-let testInput = "dabAcCaCBAcCcaDA"
-print(collapsePolymer(testInput).count)
+func testWithoutCertainLetters(_ string: String) -> String {
+    let letters = Set(Array(string.lowercased()))
+    print(letters)
+    var resultsDict: [Character: String] = [:]
+    
+    for letter in letters {
+        let array = Array(string).filter() { String($0).lowercased() != String(letter) }
+        let result = collapsePolymer(String(array))
+        resultsDict[letter] = result
+        print("Without \(letter) the count is: \(result.count)")
+    }
+    
+    let answer = resultsDict.min(by: { $0.value.count < $1.value.count })
+    return answer?.value ?? "Didn't produce a result."
+}
 
-let answer = collapsePolymer(day5input)
+
+
+let testInput = "dabAcCaCBAcCcaDA"
+testWithoutCertainLetters(testInput)
+
+let answer = testWithoutCertainLetters(day5input)
 print(answer.count)
