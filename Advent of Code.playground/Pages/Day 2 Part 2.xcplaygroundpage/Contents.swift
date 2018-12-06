@@ -33,6 +33,5 @@ func answerPart2(_ string: String) -> String {
 }
 
 let test1 = "abcde fghij klmno pqrst fguij axcye wvxyz"
-//answerPart2(test1)
 
 answerPart2(day2Input)

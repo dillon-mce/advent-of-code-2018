@@ -30,25 +30,7 @@ struct Claim: Hashable {
         }
         return set
     }
-    //
-    //    init (id: String, x: Int, y: Int, height: Int, width: Int) {
-    //        self.id = id
-    //        self.x = x
-    //        self.y = y
-    //        self.height = height
-    //        self.width = width
-    //
-    //        self.internalPoints =
-    //    }
-    
-    //    func getIntersectionPoints(with claims: [Claim]) -> Set<Point> {
-    //        var points: Set<Point> = Set()
-    //        let internalPoints = self.internalPoints
-    //        for claim in claims {
-    //            points.formUnion(internalPoints.intersection(claim.internalPoints))
-    //        }
-    //        return points
-    //    }
+}
     
     func getIntersectionPoints(with claim: Claim) -> Set<Point> {
         var points: Set<Point> = Set()
@@ -69,7 +51,6 @@ struct Claim: Hashable {
 }
 
 func findNoOverlaps(_ claims: [Claim]) -> Set<Claim> {
-    //var overlap: Int = 0
     var noOverlaps: Set<Claim> = Set(claims)
     for i in 0..<claims.count {
         for j in i+1..<claims.count {

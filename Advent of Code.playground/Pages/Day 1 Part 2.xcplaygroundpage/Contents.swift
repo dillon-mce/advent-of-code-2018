@@ -35,6 +35,3 @@ calculateFirstReusedFreq(test1)
 calculateFirstReusedFreq(day1Input)
 
 
-
-//calculateFreq("+3 -12 +54")
-

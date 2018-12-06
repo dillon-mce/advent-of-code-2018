@@ -8,7 +8,6 @@ var timestampDict: [String: [Date]] = [:]
 
 for i in 0..<inputData.count {
     let components = inputData[i].components(separatedBy: CharacterSet(charactersIn: "[]"))
-    //print(components)
     if components[2].hasPrefix(" Guard") {
         let num = components[2].components(separatedBy: .whitespaces)[2]
         currentGuard = num
@@ -20,10 +19,6 @@ for i in 0..<inputData.count {
     guard let date = dateFormatter.date(from: components[1]) else { continue }
     
     timestampDict[currentGuard, default: []].append(date)
-//
-//    let dateInterval = DateInterval(start: previousDate, end: date)
-//    print(dateInterval.duration/60)
-//    lastDate = date
 }
 
 var sleepCount: [String: Int] = [:]

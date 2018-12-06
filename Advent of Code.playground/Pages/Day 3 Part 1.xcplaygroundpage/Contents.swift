@@ -30,25 +30,8 @@ struct Claim {
         }
         return set
     }
-//
-//    init (id: String, x: Int, y: Int, height: Int, width: Int) {
-//        self.id = id
-//        self.x = x
-//        self.y = y
-//        self.height = height
-//        self.width = width
-//
-//        self.internalPoints =
-//    }
+}
     
-//    func getIntersectionPoints(with claims: [Claim]) -> Set<Point> {
-//        var points: Set<Point> = Set()
-//        let internalPoints = self.internalPoints
-//        for claim in claims {
-//            points.formUnion(internalPoints.intersection(claim.internalPoints))
-//        }
-//        return points
-//    }
     
     func getIntersectionPoints(with claim: Claim) -> Set<Point> {
         var points: Set<Point> = Set()
@@ -68,20 +51,7 @@ struct Claim {
     
 }
 
-//func overlappingPoints(_ claims: [Claim]) -> Set<Point> {
-//    var set: Set<Point> = Set()
-//    for i in 0..<claims.count {
-//        for j in i+1..<claims.count {
-//            let claim1 = claims[i]
-//            let claim2 = claims[j]
-//
-//        }
-//    }
-//    return overlap
-//}
-
 func addOverlappingArea(_ claims: [Claim]) -> Set<Point> {
-    //var overlap: Int = 0
     var points: Set<Point> = Set()
     for i in 0..<claims.count {
         for j in i+1..<claims.count {
@@ -94,15 +64,6 @@ func addOverlappingArea(_ claims: [Claim]) -> Set<Point> {
     }
     return points
 }
-
-//func getAllIntersectionPoints(_ claims: [Claim]) -> Set<Point> {
-//    var points: Set<Point> = Set()
-//    for i in 0..<claims.count {
-//        let array = Array(claims.suffix(claims.count - (i+1)))
-//        points.formUnion(claims[i].getIntersectionPoints(with: array))
-//    }
-//    return points
-//}
 
 func parseInput(_ string: String) -> [Claim] {
     let newLines = CharacterSet(charactersIn: "\n")
@@ -139,12 +100,6 @@ let test1 = """
 
 let testClaims = parseInput(test1)
 let claims = parseInput(day3Input)
-
-//let testPoints = getAllIntersectionPoints(testClaims)
-//print(testPoints.count)
-
-//let overlappingPoints = getAllIntersectionPoints(claims)
-//print(overlappingPoints.count)
 
 addOverlappingArea(testClaims).count
 let overlappingPoints = addOverlappingArea(claims)
