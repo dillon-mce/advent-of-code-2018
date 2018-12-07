@@ -48,3 +48,5 @@ Step F must be finished before step E can begin.
 
 figureOutOrder(testInput)
 figureOutOrder(day7Input)
+
+// Answer: CHILFNMORYKGAQXUVBZPSJWDET
