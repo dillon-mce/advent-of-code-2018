@@ -5,12 +5,17 @@ class Node {
     var metadata: [Int] = []
     
     var sumOfMetadata: Int {
-        var metadataSum = metadata.reduce(0, +)
-        for child in children {
-            metadataSum += child.sumOfMetadata
+        var metadataSum = 0
+        if children.count == 0 {
+            return metadata.reduce(0, +)
+        } else {
+            for item in metadata {
+                if item - 1 < children.count {
+                    metadataSum += children[item-1].sumOfMetadata
+                }
+            }
+            return metadataSum
         }
-        
-        return metadataSum
     }
     
     init (children: [Node], metadata: [Int]) {
@@ -45,10 +50,11 @@ func calculateSum (_ string: String) -> Int {
     
     
     return node.sumOfMetadata
+}
 
 let testInput = "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2"
 calculateSum(testInput)
 
 calculateSum(day8Input)
 
-// Answer: 43996
+// Answer: 35189
