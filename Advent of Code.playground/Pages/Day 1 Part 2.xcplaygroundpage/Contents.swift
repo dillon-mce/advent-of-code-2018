@@ -1,6 +1,7 @@
 import UIKit
 
-func calculateFirstReusedFreq(_ string: String) -> Int? {
+func calculateFirstReusedFreq(_ string: String) -> Int {
+    let startTime = CFAbsoluteTimeGetCurrent()
     let array = string.components(separatedBy: .whitespacesAndNewlines)
     var result: Int? = nil
     var frequency = 0
@@ -20,13 +21,18 @@ func calculateFirstReusedFreq(_ string: String) -> Int? {
                 // Otherwise if it is marked by a minus sign, subtract it
                 frequency -= number
             }
-            if frequenciesHit.contains(frequency) { return frequency }
+            if frequenciesHit.contains(frequency) {
+                result = frequency
+                break
+            }
             frequenciesHit.insert(frequency)
         }
-        print("\(count) times through the loop!")
     }
     
-    return result
+    print("\(count) times through the loop!")
+    print("Answer: \(result!)")
+    print("Took \(CFAbsoluteTimeGetCurrent() - startTime) seconds to find an answer")
+    return result!
 }
 
 let test1 = "+1 -2 +3 +1"
