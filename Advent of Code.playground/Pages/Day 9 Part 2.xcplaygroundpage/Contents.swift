@@ -1,4 +1,4 @@
-import Foundation
+import Cocoa
 
 class Marble {
     var score: Int
@@ -33,15 +33,17 @@ class Marble {
     }
 }
 
-func calculateHighScore(_ string: String) -> Int {
+func calculateHighScore(_ string: String, multiplier: Int) -> Int {
     var input = string.components(separatedBy: .whitespaces).compactMap() { Int($0) }
     var currentMarble = Marble(score: 0)
+    var board: [Int] = [0]
     var scores: [Int: Int] = [:]
     let numOfPlayers = input[0]
-    let rounds = input[1] * 100a
+    let rounds = input[1] * multiplier
+//    let possibleWinner = rounds % numOfPlayers != 0 ? rounds % numOfPlayers : numOfPlayers
+//    print("Possible winner: \(possibleWinner)")
     
     for i in 1...rounds {
-        let newMarble = Marble(score: i)
         if i % 23 == 0 {
             let currentPlayer = i % numOfPlayers != 0 ? i % numOfPlayers : numOfPlayers
             var score = i
@@ -51,23 +53,30 @@ func calculateHighScore(_ string: String) -> Int {
             marbleToRemove.remove()
             scores[currentPlayer, default: 0] += score
         } else {
+            let newMarble = Marble(score: i)
             newMarble.insert(between: currentMarble.offset(1), and: currentMarble.offset(2))
             currentMarble = newMarble
         }
     }
+    for (player, score) in scores.sorted(by: { $0.key < $1.key }) {
+        //print("Player \(player) got a score of: \(score)")
+    }
     
     guard let winner = scores.max(by: { $0.value < $1.value }) else { return -1 }
     print("Player \(winner.key) won with a score of \(winner.value)")
+    print("That score is a factor of \(input[1]) with a remainder of \(winner.value % input[1])")
     return winner.value
 }
 
-let testInput1 = "9 players; last marble is worth 25 points" // 32
-calculateHighScore(testInput1)
-let testInput2 = "10 players; last marble is worth 1618 points" //8317
+let testInput1 = "9 players; last marble is worth 23 points" // 32
+//for i in 1...20 {
+    //calculateHighScore(testInput1, multiplier: 100)
+//}
+let testInput2 = "9 players; last marble is worth 2500 points" //8317
 //calculateHighScore(testInput2)
 let testInput3 = "13 players; last marble is worth 7999 points" //146373
 //calculateHighScore(testInput3)
 
-calculateHighScore(day9Input)
+calculateHighScore(day9Input, multiplier: 100)
 
-//Answer: 410375
+//Answer: 
