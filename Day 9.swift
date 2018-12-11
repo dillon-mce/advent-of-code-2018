@@ -34,6 +34,7 @@ class Marble {
 }
 
 func calculateHighScore(_ string: String, multiplier: Int) -> Int {
+    let startTime = CFAbsoluteTimeGetCurrent()
     var input = string.components(separatedBy: .whitespaces).compactMap() { Int($0) }
     var currentMarble = Marble(score: 0)
     //var board: [Int] = [0]
@@ -44,7 +45,6 @@ func calculateHighScore(_ string: String, multiplier: Int) -> Int {
     //    print("Possible winner: \(possibleWinner)")
     
     for i in 1...rounds {
-        let startTime = CFAbsoluteTimeGetCurrent()
         if i % 23 == 0 {
             let currentPlayer = i % numOfPlayers != 0 ? i % numOfPlayers : numOfPlayers
             var score = i
@@ -53,12 +53,10 @@ func calculateHighScore(_ string: String, multiplier: Int) -> Int {
             currentMarble = marbleToRemove.nextMarble!
             marbleToRemove.remove()
             scores[currentPlayer, default: 0] += score
-            print("It took \(CFAbsoluteTimeGetCurrent() - startTime) seconds to calculate the score at round \(i/23)")
         } else {
             let newMarble = Marble(score: i)
             newMarble.insert(between: currentMarble.offset(1), and: currentMarble.offset(2))
             currentMarble = newMarble
-            //print("It took \(CFAbsoluteTimeGetCurrent() - startTime) seconds to add marble \(i)")
         }
     }
     
@@ -68,6 +66,7 @@ func calculateHighScore(_ string: String, multiplier: Int) -> Int {
     
     guard let winner = scores.max(by: { $0.value < $1.value }) else { return -1 }
     print("Player \(winner.key) won with a score of \(winner.value)")
+    print("It took \(CFAbsoluteTimeGetCurrent() - startTime) seconds to calculate.")
     //print("That score is a factor of \(input[1]) with a remainder of \(winner.value % input[1])")
     return winner.value
 }
