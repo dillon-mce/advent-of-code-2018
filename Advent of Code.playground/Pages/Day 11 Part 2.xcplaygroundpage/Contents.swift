@@ -1,11 +1,13 @@
+import Foundation
+
 struct Point: Hashable {
     let x: Int
     let y: Int
     
 }
-func calculatePowerLevel(_ point: Point, serial: Int) -> Int{
-    let rackID = point.x + 10
-    var powerLevel = point.y * rackID
+func calculatePowerLevel(x: Int, y: Int, serial: Int) -> Int{
+    let rackID = x + 10
+    var powerLevel = y * rackID
     powerLevel += serial
     powerLevel *= rackID
     powerLevel /= 100
@@ -14,42 +16,43 @@ func calculatePowerLevel(_ point: Point, serial: Int) -> Int{
     return powerLevel
 }
 
-func calculatePoints(with serial: Int) -> [Point: Int]  {
-    var powerDict: [Point: Int] = [:]
+func calculatePoints(with serial: Int) -> [[Int]]  {
+    var powerArray: [[Int]] = []
     
-    for x in 1...300 {
-        for y in 1...300 {
-            let point = Point(x: x, y: y)
-            powerDict[point] = calculatePowerLevel(point, serial: serial)
+    for x in 0...299 {
+        powerArray.append([])
+        for y in 0...299 {
+            powerArray[x].append(calculatePowerLevel(x: x, y: y, serial: serial))
         }
     }
     
-    return powerDict
+    return powerArray
 }
 
-func calculateLargestSquare(_ powerDict: [Point: Int]) -> Point {
-    var largestPoint: (point: Point, value: Int) = (Point(x: 300, y: 300), 0)
+func calculateLargestSquare(_ powerDict: [[Int]], gridsize i: Int) -> (point: Point, value: Int, grid: Int) {
+    var largestPoint: (point: Point, value: Int, grid: Int) = (Point(x: 300, y: 300), 0, 0)
     
-    for i in 2...300 {
-        for point in powerDict.keys {
-            var sum = 0
-            if powerDict[Point(x: point.x + (i - 1), y: point.y + (i - 1))] != nil {
-                for x in point.x...point.x + (i - 1) {
-                    for y in point.y...point.y + (i - 1) {
-                        sum += powerDict[Point(x: x, y: y)]!
-                    }
-                }
-                if sum > largestPoint.value { largestPoint = (point, sum) }
+    var sum = 0
+    for x in 0..<powerDict.count - (i - 1) {
+        for y in 0..<powerDict[x].count - (i - 1) {
+            sum = 0
+            for j in x..<x + i {
+                sum += powerDict[j][y..<y + i].reduce(0, +)
             }
+            if sum > largestPoint.value { largestPoint = (Point(x: x, y: y), sum, i) }
         }
     }
     
-    print("The the point whose square holds the largest value is \(largestPoint.point) with a value of \(largestPoint.value)")
-    return largestPoint.point
+    print("The the point whose square holds the largest value is \(largestPoint.point) with a value of \(largestPoint.value) at grid size \(largestPoint.grid)x\(largestPoint.grid)")
+    return largestPoint
 }
 
 //let testDict = calculatePoints(with: 18)
-//calculateLargestSquare(testDict)
+//calculateLargestSquare(testDict, gridsize: 3)
 
 let powerDict = calculatePoints(with: day11Input)
-calculateLargestSquare(powerDict)
+var largest: (point: Point, value: Int, grid: Int) = (Point(x: 300, y: 300), 0, 0)
+for i in 2...300 {
+    let value = calculateLargestSquare(powerDict, gridsize: i)
+    if value.value > largest.value { largest = value }
+}
