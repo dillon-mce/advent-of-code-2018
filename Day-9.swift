@@ -1,4 +1,5 @@
 import Cocoa
+import /Day9Input
 
 class Marble {
     var score: Int
@@ -79,7 +80,8 @@ let testInput2 = "10 players; last marble is worth 1618 points" //8317
 //calculateHighScore(testInput2, multiplier: 1)
 let testInput3 = "13 players; last marble is worth 7999 points" //146373
 //calculateHighScore(testInput3)
-let day9Input = "439 players; last marble is worth 71307 points"
+
+public let day9Input = "439 players; last marble is worth 71307 points"
 calculateHighScore(day9Input, multiplier: 100)
 
 //Answer:
