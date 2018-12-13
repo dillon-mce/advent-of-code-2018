@@ -62,7 +62,7 @@ func calculateFirstReusedFreq(_ string: String) -> Int {
             frequenciesHit.insert(frequency)
         }
     }
-    
+    //print("\(count) times through the loop!")
     return result!
 }
 
