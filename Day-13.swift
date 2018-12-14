@@ -42,11 +42,13 @@ class Cart {
     var direction: Direction
     var intersections: Int = 0
     let index: Int
+    var currentPoint: Point
     
-    init (direction: Direction) {
+    init (direction: Direction, point: Point) {
         self.direction = direction
         Cart.cartCount += 1
         self.index = Cart.cartCount
+        self.currentPoint = point
     }
     
     func turnLeft() -> Direction {
@@ -82,9 +84,9 @@ enum Direction {
     case up, down, left, right
 }
 
-func parseInput(_ string: String) -> ([Point : Track], [Point: Cart]) {
+func parseInput(_ string: String) -> ([Point : Track], [Cart]) {
     var trackDict: [Point : Track] = [:]
-    var cartDict: [Point: Cart] = [:]
+    var cartArray: [Cart] = []
     let array = string.components(separatedBy: .newlines)
     for y in 0..<array.count {
         let line = Array(array[y])
@@ -134,67 +136,52 @@ func parseInput(_ string: String) -> ([Point : Track], [Point: Cart]) {
                 }
             case "<":
                 track = .horizontal
-                cartDict[point] = Cart(direction: .left)
+                cartArray.append(Cart(direction: .left, point: point))
             case ">":
                 track = .horizontal
-                cartDict[point] = Cart(direction: .right)
+                cartArray.append(Cart(direction: .right, point: point))
             case "^":
                 track = .vertical
-                cartDict[point] = Cart(direction: .up)
+                cartArray.append(Cart(direction: .up, point: point))
             case "v":
                 track = .vertical
-                cartDict[point] = Cart(direction: .down)
+                cartArray.append(Cart(direction: .down, point: point))
             default:
                 break
             }
             if track != .empty { trackDict[point] = track }
         }
     }
-    return (trackDict, cartDict)
+    return (trackDict, cartArray)
 }
 
 func findFirstCrash(_ string: String) -> Point {
-    var (trackDict, cartDict) = parseInput(string)
+    var (trackDict, cartArray) = parseInput(string)
     var firstCrash: Point?
     var count = 0
-    //print(cartDict.sorted(by: { $0.key < $1.key }))
+    var cartsAt: Set<Point> = Set()
     while firstCrash == nil {
         count += 1
-        let keys = cartDict.keys.sorted()
-        for key in keys {
-            guard let cart = cartDict[key] else {
-                print("Couldn't get a reference to the cart for some reason.")
-                continue
-            }
+        for cart in cartArray {
             let newPoint: Point
             switch cart.direction {
             case .up:
-                newPoint = Point(x: key.x, y: key.y - 1)
+                newPoint = Point(x: cart.currentPoint.x, y: cart.currentPoint.y - 1)
             case .down:
-                newPoint = Point(x: key.x, y: key.y + 1)
+                newPoint = Point(x: cart.currentPoint.x, y: cart.currentPoint.y + 1)
             case .left:
-                newPoint = Point(x: key.x - 1, y: key.y)
+                newPoint = Point(x: cart.currentPoint.x - 1, y: cart.currentPoint.y)
             case .right:
-                newPoint = Point(x: key.x + 1, y: key.y)
+                newPoint = Point(x: cart.currentPoint.x + 1, y: cart.currentPoint.y)
             }
-//            if count > 93 && count < 96 && (cart.index == 4 || cart.index == 17) {
-//                print("\(count): Cart \(cart.index) is at \(key) and is moving \(cart.direction) to \(newPoint)")
-//            }
-            if cartDict[newPoint] != nil {
+
+            if cartsAt.contains(newPoint) {
                 firstCrash = newPoint
                 break
             }
-            cartDict[newPoint] = cart
-            cartDict[key] = nil
-            
-//            for (key2, value) in cartDict {
-//                 if value.index != cart.index {
-//                    let distance = key.distanceFrom(key2)
-//                    if distance < 5 {
-//                        print("\(count): cart \(cart.index) is \(distance) from \(value.index)")
-//                    }
-//                }
-//            }
+            cartsAt.remove(cart.currentPoint)
+            cart.currentPoint = newPoint
+            cartsAt.insert(newPoint)
             
             guard let track = trackDict[newPoint] else {
                 print("\(count) - Couldn't get the track at point (\(newPoint.x), \(newPoint.y))")
