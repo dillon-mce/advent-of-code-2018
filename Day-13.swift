@@ -177,24 +177,13 @@ func findFirstCrash(_ string: String) -> Point {
             case .right:
                 newPoint = Point(x: key.x + 1, y: key.y)
             }
-//            if count > 93 && count < 96 && (cart.index == 4 || cart.index == 17) {
-//                print("\(count): Cart \(cart.index) is at \(key) and is moving \(cart.direction) to \(newPoint)")
-//            }
+
             if cartDict[newPoint] != nil {
                 firstCrash = newPoint
                 break
             }
             cartDict[newPoint] = cart
             cartDict[key] = nil
-            
-//            for (key2, value) in cartDict {
-//                 if value.index != cart.index {
-//                    let distance = key.distanceFrom(key2)
-//                    if distance < 5 {
-//                        print("\(count): cart \(cart.index) is \(distance) from \(value.index)")
-//                    }
-//                }
-//            }
             
             guard let track = trackDict[newPoint] else {
                 print("\(count) - Couldn't get the track at point (\(newPoint.x), \(newPoint.y))")
@@ -239,11 +228,6 @@ func findFirstCrash(_ string: String) -> Point {
             }
             
         }
-//        print("ROUND \(count)")
-//        for key in cartDict.keys.sorted() {
-//            let cart = cartDict[key]!
-//            print("Cart \(cart.index) is at point (\(key.x), \(key.y)) and is moving \(cart.direction)")
-//        }
     }
     print("\(count) times through the loop")
     return firstCrash!
@@ -253,7 +237,83 @@ func findFirstCrash(_ string: String) -> Point {
 //assert(produceCheckSum(on: test1) == 12)
 
 // Part 2
+func findLocationAfterCrashes(_ string: String) -> Point {
+    var (trackDict, cartDict) = parseInput(string)
+    var count = 0
+    //print(cartDict.sorted(by: { $0.key < $1.key }))
+    while cartDict.count > 1 {
+        count += 1
+        let keys = cartDict.keys.sorted()
+        for key in keys {
+            guard let cart = cartDict[key] else {
+                print("Couldn't get a reference to the cart for some reason.")
+                continue
+            }
+            let newPoint: Point
+            switch cart.direction {
+            case .up:
+                newPoint = Point(x: key.x, y: key.y - 1)
+            case .down:
+                newPoint = Point(x: key.x, y: key.y + 1)
+            case .left:
+                newPoint = Point(x: key.x - 1, y: key.y)
+            case .right:
+                newPoint = Point(x: key.x + 1, y: key.y)
+            }
 
+            if cartDict[newPoint] != nil {
+                cartDict[newPoint] = nil
+            } else {
+                cartDict[newPoint] = cart
+            }
+            cartDict[key] = nil
+            
+            guard let track = trackDict[newPoint] else {
+                print("\(count) - Couldn't get the track at point (\(newPoint.x), \(newPoint.y))")
+                continue
+            }
+            
+            switch track {
+            case .topLeft:
+                if cart.direction == .up {
+                    cart.direction = .right
+                } else {
+                    cart.direction = .down
+                }
+            case .topRight:
+                if cart.direction == .up {
+                    cart.direction = .left
+                } else {
+                    cart.direction = .down
+                }
+            case .bottomLeft:
+                if cart.direction == .down {
+                    cart.direction = .right
+                } else {
+                    cart.direction = .up
+                }
+            case .bottomRight:
+                if cart.direction == .down {
+                    cart.direction = .left
+                } else {
+                    cart.direction = .up
+                }
+            case .intersection:
+                let decider = cart.intersections % 3
+                if decider == 0 {
+                    cart.direction = cart.turnLeft()
+                } else if decider == 2 {
+                    cart.direction = cart.turnRight()
+                }
+                cart.intersections += 1
+            default:
+                break
+            }
+        }
+    }
+    print("\(count) times through the loop")
+    return cartDict.first!.key
+}
 
 let test2 = ""
 //assert(answerPart2(test2) == "")
@@ -269,9 +329,8 @@ func findAnswers(_ string: String) {
     //if string == test1 { string = test2 }
 
     startTime = CFAbsoluteTimeGetCurrent()
-    // update function here
-//    let answer2 = answerPart2(string)
-//    print("Part 2 Answer: \(answer2)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
+    let answer2 = findLocationAfterCrashes(string)
+    print("Part 2 Answer: \(answer2)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
 }
 
 
