@@ -4,14 +4,14 @@ class Node {
     var children: [Node] = []
     var metadata: [Int] = []
     
-    var sumOfMetadata: Int {
+    var sumOfMetadata2: Int {
         var metadataSum = 0
         if children.count == 0 {
             return metadata.reduce(0, +)
         } else {
             for item in metadata {
                 if item - 1 < children.count {
-                    metadataSum += children[item-1].sumOfMetadata
+                    metadataSum += children[item-1].sumOfMetadata2
                 }
             }
             return metadataSum

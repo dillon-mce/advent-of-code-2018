@@ -1,6 +1,13 @@
+#!/usr/bin/swift
 import Cocoa
-import /Day9Input
+let input = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : ""
+var day = "DAY 9"
+day += input == "" ? " – TEST" : ""
+let underscores = Array(repeating: "—", count: day.count).joined()
 
+print("\n\(underscores)\n\(day)\n\(underscores)")
+
+// Part 1 & 2
 class Marble {
     var score: Int
     
@@ -35,15 +42,11 @@ class Marble {
 }
 
 func calculateHighScore(_ string: String, multiplier: Int) -> Int {
-    let startTime = CFAbsoluteTimeGetCurrent()
     var input = string.components(separatedBy: .whitespaces).compactMap() { Int($0) }
     var currentMarble = Marble(score: 0)
-    //var board: [Int] = [0]
     var scores: [Int: Int] = [:]
     let numOfPlayers = input[0]
     let rounds = input[1] * multiplier
-    //    let possibleWinner = rounds % numOfPlayers != 0 ? rounds % numOfPlayers : numOfPlayers
-    //    print("Possible winner: \(possibleWinner)")
     
     for i in 1...rounds {
         if i % 23 == 0 {
@@ -66,23 +69,35 @@ func calculateHighScore(_ string: String, multiplier: Int) -> Int {
     //    }
     
     guard let winner = scores.max(by: { $0.value < $1.value }) else { return -1 }
-    print("Player \(winner.key) won with a score of \(winner.value)")
-    print("It took \(CFAbsoluteTimeGetCurrent() - startTime) seconds to calculate.")
-    //print("That score is a factor of \(input[1]) with a remainder of \(winner.value % input[1])")
+    //print("Player \(winner.key) won with a score of \(winner.value)")
     return winner.value
 }
 
-let testInput1 = "9 players; last marble is worth 23 points" // 32
-//for i in 1...20 {
-//calculateHighScore(testInput1, multiplier: 100)
-//}
-let testInput2 = "10 players; last marble is worth 1618 points" //8317
-//calculateHighScore(testInput2, multiplier: 1)
-let testInput3 = "13 players; last marble is worth 7999 points" //146373
-//calculateHighScore(testInput3)
+let test1 = "10 players; last marble is worth 1618 points"
 
-public let day9Input = "439 players; last marble is worth 71307 points"
-calculateHighScore(day9Input, multiplier: 100)
+assert(calculateHighScore(test1, multiplier: 1) == 8317)
 
-//Answer:
+// Part 2
+
+let test2 = test1
+assert(calculateHighScore(test2, multiplier: 100) == 74765078)
+
+func findAnswers(_ string: String) {
+    var string = string
+    if string.isEmpty { string = test1 }
+
+    var startTime = CFAbsoluteTimeGetCurrent()
+    let answer1 = calculateHighScore(string, multiplier: 1)
+    print("Part 1 Answer: \(answer1)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
+
+    if string == test1 { string = test2 }
+
+    startTime = CFAbsoluteTimeGetCurrent()
+    let answer2 = calculateHighScore(string, multiplier: 100)
+    print("Part 2 Answer: \(answer2)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
+}
+
+
+findAnswers(input)
+
 
