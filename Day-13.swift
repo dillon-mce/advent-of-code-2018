@@ -19,6 +19,10 @@ struct Point: Hashable, Comparable {
             return lhs.y < rhs.y
         }
     }
+    
+    func distanceFrom(_ point: Point) -> Int {
+        return abs(self.x - point.x) + abs(self.y - point.y)
+    }
 }
 
 enum Track {
@@ -70,6 +74,8 @@ class Cart {
             return .up
         }
     }
+    
+    
 }
 
 enum Direction {
@@ -171,13 +177,24 @@ func findFirstCrash(_ string: String) -> Point {
             case .right:
                 newPoint = Point(x: key.x + 1, y: key.y)
             }
-            
+//            if count > 93 && count < 96 && (cart.index == 4 || cart.index == 17) {
+//                print("\(count): Cart \(cart.index) is at \(key) and is moving \(cart.direction) to \(newPoint)")
+//            }
             if cartDict[newPoint] != nil {
                 firstCrash = newPoint
                 break
             }
             cartDict[newPoint] = cart
             cartDict[key] = nil
+            
+//            for (key2, value) in cartDict {
+//                 if value.index != cart.index {
+//                    let distance = key.distanceFrom(key2)
+//                    if distance < 5 {
+//                        print("\(count): cart \(cart.index) is \(distance) from \(value.index)")
+//                    }
+//                }
+//            }
             
             guard let track = trackDict[newPoint] else {
                 print("\(count) - Couldn't get the track at point (\(newPoint.x), \(newPoint.y))")
@@ -222,6 +239,11 @@ func findFirstCrash(_ string: String) -> Point {
             }
             
         }
+//        print("ROUND \(count)")
+//        for key in cartDict.keys.sorted() {
+//            let cart = cartDict[key]!
+//            print("Cart \(cart.index) is at point (\(key.x), \(key.y)) and is moving \(cart.direction)")
+//        }
     }
     print("\(count) times through the loop")
     return firstCrash!
