@@ -1,0 +1,30 @@
+#!/bin/bash
+# Script to made it prettier when I run my swift code from advent of code.
+
+if [ "$1" != "" ]; then
+        case $1 in
+        -t | --test )   if [ "$2" != "" ]; then
+                                ./Day-$2.swift
+                                exit 0
+                        else
+                                echo "You need to pass in a number parameter"
+                                exit 1
+                        fi
+                        ;;
+        -n | --new )   if [ "$2" != "" ]; then
+                                cp -n _template.swift Day-$2.swift
+                                chmod +x Day-$2.swift
+                                touch Day-$2-Input.txt
+                                exit 0
+                        else
+                                echo "You need to pass in a number parameter"
+                                exit 1
+                        fi
+                        ;;
+        * )             ./Day-$1.swift "$(cat Day-$1-Input.txt)"
+                        exit 0
+        esac
+else
+        echo "You need to pass in a number parameter"
+        exit 1
+fi
