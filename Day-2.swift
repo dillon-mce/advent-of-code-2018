@@ -31,15 +31,6 @@ let test1 = "abcdef bababc abbcde abcccd aabcdd abcdee ababab"
 assert(produceCheckSum(test1) == 12)
 
 // Part 2
-func matchAllButOne(_ string: String) -> [String] {
-    let array = string.components(separatedBy: .whitespacesAndNewlines)
-    for string1 in array {
-        let filtered = array.filter() { filterString(string1, $0) }
-        if filtered.count > 1 { return filtered }
-    }
-    return []
-}
-
 func filterString(_ string1: String, _ string2: String) -> Bool {
     var mismatches = 0
     let array1 = Array(string1)
@@ -50,21 +41,29 @@ func filterString(_ string1: String, _ string2: String) -> Bool {
     return mismatches < 2
 }
 
-@discardableResult func answerPart2(_ string: String) -> String {
-    let array = matchAllButOne(string)
-    var string = ""
+func findCommonLetters(_ string: String) -> String {
+    let array = string.components(separatedBy: .whitespacesAndNewlines)
+    var resultString = ""
+    var filtered: [String] = []
     
-    let array1 = Array(array[0])
-    let array2 = Array(array[1])
-    for i in 0..<array1.count {
-        if array1[i] == array2[i] { string += String(array1[i]) }
+    while filtered.count < 1 {
+        for ID in array {
+            filtered = array.filter() { filterString(ID, $0) }
+            if filtered.count > 1 { break }
+        }
     }
     
-    return string
+    let array1 = Array(filtered[0])
+    let array2 = Array(filtered[1])
+    for i in 0..<array1.count {
+        if array1[i] == array2[i] { resultString += String(array1[i]) }
+    }
+    
+    return resultString
 }
 
 let test2 = "abcde fghij klmno pqrst fguij axcye wvxyz"
-assert(answerPart2(test2) == "fgij")
+assert(findCommonLetters(test2) == "fgij")
 
 func findAnswers(_ string: String) {
     var string = string
@@ -75,7 +74,7 @@ func findAnswers(_ string: String) {
     
     if string == test1 { string = test2 }
     startTime = CFAbsoluteTimeGetCurrent()
-    let answer2 = answerPart2(string)
+    let answer2 = findCommonLetters(string)
     
     print("Part 2 Answer: \(answer2)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
 }
