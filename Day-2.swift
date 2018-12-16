@@ -46,11 +46,9 @@ func findCommonLetters(_ string: String) -> String {
     var resultString = ""
     var filtered: [String] = []
     
-    while filtered.count < 1 {
-        for ID in array {
-            filtered = array.filter() { filterString(ID, $0) }
-            if filtered.count > 1 { break }
-        }
+    for ID in array {
+        filtered = array.filter() { filterString(ID, $0) }
+        if filtered.count > 1 { break }
     }
     
     let array1 = Array(filtered[0])
