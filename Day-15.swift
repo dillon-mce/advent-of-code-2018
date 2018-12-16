@@ -37,11 +37,15 @@ struct Point: Hashable, Comparable, CustomStringConvertible {
         return Point(x: x + 1, y: y)
     }
     
+    var neighbors: [Point] {
+        return [above, below, left, right]
+    }
+    
     func allReachablePoints(on gameBoard: GameBoard, distance: Int = 0) -> Set<Point> {
         let newDistance = distance + 1
         var allReachablePoints = Set<Point>()
         let spaceAbove = gameBoard.map[above]
-        if (spaceAbove == .open || spaceAbove == .marked) && gameBoard.players[above] == nil {
+        if spaceAbove == .open && gameBoard.players[above] == nil {
             if gameBoard.distances[above] == nil || newDistance < gameBoard.distances[above]! {
                 gameBoard.distances[above] = newDistance
                 allReachablePoints.insert(above)
@@ -73,6 +77,31 @@ struct Point: Hashable, Comparable, CustomStringConvertible {
         return abs(self.x - point.x) + abs(self.y - point.y)
     }
 }
+
+struct Queue<T> {
+    var array: [T] = []
+    
+    var isEmpty: Bool {
+        return count == 0
+    }
+    
+    var count: Int {
+        return array.count
+    }
+    
+    mutating func enqueue(_ element: T) {
+        array.append(element)
+    }
+    
+    mutating func dequeue() -> T? {
+        return isEmpty ? nil : array.removeFirst()
+    }
+    
+    var first: T? {
+        return array.first
+    }
+}
+
 
 enum Team: String {
     case elf = "E"
@@ -115,14 +144,43 @@ class Player: CustomStringConvertible {
         
         let allReachablePoints = location.allReachablePoints(on: gameBoard)
         let reachablePoints = allReachablePoints.intersection(pointsInRange)
-        print(reachablePoints)
-        gameBoard.distances = gameBoard.distances.filter() { reachablePoints.contains($0.key) }
-        print(gameBoard.distances)
+        //print(reachablePoints)
+        
+        var distance = 0
+        var queue: Queue<Point> = Queue()
+        queue.enqueue(location)
+        gameBoard.distances[location] = distance
+        
         // Reset the gameboard
         for point in allReachablePoints {
             gameBoard.map[point] = .open
         }
         
+        // Figure out the distances to each reachable point
+        while let point = queue.dequeue() {
+            //print("Dequeued point: \(point).\nIt's neighbors are: \(point.neighbors)")
+            for neighboringPoint in point.neighbors {
+                if gameBoard.map[neighboringPoint] == .open && (gameBoard.distances[neighboringPoint] == nil || gameBoard.distances[point]! + 1 < gameBoard.distances[neighboringPoint]!) {
+                    queue.enqueue(neighboringPoint)
+                    gameBoard.distances[neighboringPoint] = gameBoard.distances[point, default: 0] + 1
+                }
+            }
+        }
+        
+        let reachableDistances = gameBoard.distances.filter({ reachablePoints.contains( $0.key ) })
+        print(reachableDistances)
+        
+        guard let minValue = reachableDistances.min(by: { $0.value < $1.value }) else {
+            print("This player doesn't have any closest points to target.")
+            return true
+        }
+        
+        let nearestDistances = reachableDistances.filter { $0.value == minValue.value }
+        
+        let chosen = nearestDistances.min(by: { $0.key < $1.key })!
+        print(chosen)
+        
+        gameBoard.distances = [:]
         
         return true
     }
