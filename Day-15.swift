@@ -37,27 +37,33 @@ struct Point: Hashable, Comparable, CustomStringConvertible {
         return Point(x: x + 1, y: y)
     }
     
-    func allReachablePoints(on gameBoard: GameBoard) -> Set<Point> {
+    func allReachablePoints(on gameBoard: GameBoard, distance: Int = 0) -> Set<Point> {
+        let newDistance = distance + 1
         var allReachablePoints = Set<Point>()
-        if gameBoard.map[above] == .open && gameBoard.players[above] == nil {
-            allReachablePoints.insert(above)
-            gameBoard.map[above] = .marked
-            allReachablePoints = allReachablePoints.union(above.allReachablePoints(on: gameBoard))
+        let spaceAbove = gameBoard.map[above]
+        if (spaceAbove == .open || spaceAbove == .marked) && gameBoard.players[above] == nil {
+            if gameBoard.distances[above] == nil || newDistance < gameBoard.distances[above]! {
+                gameBoard.distances[above] = newDistance
+                allReachablePoints.insert(above)
+                gameBoard.map[above] = .marked
+            }
+            allReachablePoints = allReachablePoints.union(above.allReachablePoints(on: gameBoard, distance: newDistance))
+            
         }
         if gameBoard.map[below] == .open && gameBoard.players[below] == nil {
             allReachablePoints.insert(below)
             gameBoard.map[below] = .marked
-            allReachablePoints = allReachablePoints.union(below.allReachablePoints(on: gameBoard))
+            allReachablePoints = allReachablePoints.union(below.allReachablePoints(on: gameBoard, distance: newDistance))
         }
         if gameBoard.map[left] == .open && gameBoard.players[left] == nil {
             allReachablePoints.insert(left)
             gameBoard.map[left] = .marked
-            allReachablePoints = allReachablePoints.union(left.allReachablePoints(on: gameBoard))
+            allReachablePoints = allReachablePoints.union(left.allReachablePoints(on: gameBoard, distance: newDistance))
         }
         if gameBoard.map[right] == .open && gameBoard.players[right] == nil {
             allReachablePoints.insert(right)
             gameBoard.map[right] = .marked
-            allReachablePoints = allReachablePoints.union(right.allReachablePoints(on: gameBoard))
+            allReachablePoints = allReachablePoints.union(right.allReachablePoints(on: gameBoard, distance: newDistance))
         }
         
         return allReachablePoints
@@ -109,10 +115,14 @@ class Player: CustomStringConvertible {
         
         let allReachablePoints = location.allReachablePoints(on: gameBoard)
         let reachablePoints = allReachablePoints.intersection(pointsInRange)
+        print(reachablePoints)
+        gameBoard.distances = gameBoard.distances.filter() { reachablePoints.contains($0.key) }
+        print(gameBoard.distances)
+        // Reset the gameboard
         for point in allReachablePoints {
             gameBoard.map[point] = .open
         }
-        print(reachablePoints)
+        
         
         return true
     }
@@ -145,19 +155,40 @@ class Player: CustomStringConvertible {
     
 }
 
-enum SpaceType: String, CustomStringConvertible {
-    case wall = "#"
-    case open = "."
-    case marked = "X"
+enum SpaceType: CustomStringConvertible, Equatable {
+    case wall
+    case open
+    case marked
+
+    var label: String {
+        switch self {
+        case .wall:
+            return "#"
+        case .open:
+            return "."
+        case .marked:
+            return "X"
+        }
+    }
+    
+    static func ==(lhs: SpaceType, rhs: SpaceType) -> Bool {
+        switch (lhs, rhs) {
+        case (.wall, .wall), (.open, .open), (.marked, .marked):
+            return true
+        default:
+            return false
+        }
+    }
     
     var description: String {
-        return "\(rawValue.capitalized)"
+        return "\(label)"
     }
 }
 
 class GameBoard {
     var map: [Point: SpaceType]
     var players: [Point: Player]
+    var distances: [Point: Int] = [:]
     
     init (map: [Point: SpaceType], players: [Point: Player]) {
         self.map = map
