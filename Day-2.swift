@@ -8,7 +8,7 @@ let underscores = Array(repeating: "—", count: day.count).joined()
 print("\n\(underscores)\n\(day)\n\(underscores)")
 
 // Part 1
-@discardableResult func produceCheckSum(on string: String) -> Int {
+func produceCheckSum(_ string: String) -> Int {
     let array = string.components(separatedBy: .whitespacesAndNewlines)
     let contains2 = array.filter() { containsMultiples($0, count: 2) }.count
     let contains3 = array.filter() { containsMultiples($0, count: 3) }.count
@@ -28,7 +28,7 @@ func containsMultiples(_ string: String, count: Int) -> Bool {
 }
 
 let test1 = "abcdef bababc abbcde abcccd aabcdd abcdee ababab"
-assert(produceCheckSum(on: test1) == 12)
+assert(produceCheckSum(test1) == 12)
 
 // Part 2
 func matchAllButOne(_ string: String) -> [String] {
@@ -63,11 +63,14 @@ func filterString(_ string1: String, _ string2: String) -> Bool {
     return string
 }
 
+let test2 = "abcde fghij klmno pqrst fguij axcye wvxyz"
+assert(answerPart2(test2) == "fgij")
+
 func findAnswers(_ string: String) {
     var string = string
     if string.isEmpty { string = test1 }
     var startTime = CFAbsoluteTimeGetCurrent()
-    let answer1 = produceCheckSum(on: string)
+    let answer1 = produceCheckSum(string)
     print("Part 1 Answer: \(answer1)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
     
     if string == test1 { string = test2 }
@@ -77,7 +80,5 @@ func findAnswers(_ string: String) {
     print("Part 2 Answer: \(answer2)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
 }
 
-let test2 = "abcde fghij klmno pqrst fguij axcye wvxyz"
-assert(answerPart2(test2) == "fgij")
 
 findAnswers(input)

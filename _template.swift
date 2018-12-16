@@ -11,7 +11,7 @@ print("\n\(underscores)\n\(day)\n\(underscores)")
 
 
 let test1 = ""
-//assert(produceCheckSum(on: test1) == 12)
+//assert(produceCheckSum(test1) == 12)
 
 // Part 2
 
@@ -25,7 +25,7 @@ let test2 = ""
 //    
 //    var startTime = CFAbsoluteTimeGetCurrent()
 //    // update function here
-//    let answer1 = produceCheckSum(on: string)
+//    let answer1 = produceCheckSum(string)
 //    print("Part 1 Answer: \(answer1)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
 //    
 //    if string == test1 { string = test2 }
