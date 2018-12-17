@@ -24,10 +24,7 @@ struct Claim: Hashable {
     let y: Int
     let height: Int
     let width: Int
-    
-    func contains(_ point: Point) -> Bool {
-        return point.x >= self.x && point.x < (self.x + self.width) && point.y >= self.y && point.y < (self.y + self.height)
-    }
+
     var internalPoints: Set<Point> {
         var set: Set<Point> = Set()
         for x in x..<(x + width) {
@@ -39,11 +36,8 @@ struct Claim: Hashable {
         return set
     }
 
-
     func getIntersectionPoints(with claim: Claim) -> Set<Point> {
-        var points: Set<Point> = Set()
-        points.formUnion(self.internalPoints.intersection(claim.internalPoints))
-        return points
+        return self.internalPoints.intersection(claim.internalPoints)
     }
     
     func overlappingArea(with claim: Claim) -> Int {
@@ -52,7 +46,7 @@ struct Claim: Hashable {
         
         guard overlapX > 0, overlapY > 0 else { return 0 }
         
-        return overlapX * overlapY > 0 ? overlapX * overlapY : 0
+        return overlapX * overlapY
         
     }
 
@@ -61,7 +55,7 @@ struct Claim: Hashable {
 func addOverlappingArea(_ string: String) -> Int {
     let claims = parseInput(string)
     var points: Set<Point> = Set()
-    for i in 0..<claims.count {
+    for i in 0..<claims.count-1 {
         for j in i+1..<claims.count {
             let claim1 = claims[i]
             let claim2 = claims[j]
@@ -74,15 +68,14 @@ func addOverlappingArea(_ string: String) -> Int {
 }
 
 func parseInput(_ string: String) -> [Claim] {
-    let newLines = CharacterSet(charactersIn: "\n")
-    let array = string.components(separatedBy: newLines)
+    let array = string.components(separatedBy: .newlines)
     var results: [Claim] = []
     
     for (index, item) in array.enumerated() {
         let secondArray = item.components(separatedBy: .whitespaces)
         let id = secondArray[0]
         let originArray = secondArray[2].components(separatedBy: .punctuationCharacters)
-        let boundsArray = secondArray[3].components(separatedBy: CharacterSet(charactersIn: "x"))
+        let boundsArray = secondArray[3].components(separatedBy: .lowercaseLetters)
         guard let x = Int(originArray[0]),
             let y = Int(originArray[1]),
             let width = Int(boundsArray[0]),

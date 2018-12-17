@@ -31,7 +31,7 @@ let test1 = "abcdef bababc abbcde abcccd aabcdd abcdee ababab"
 assert(produceCheckSum(test1) == 12)
 
 // Part 2
-func filterString(_ string1: String, _ string2: String) -> Bool {
+func onlyOneMismatch(_ string1: String, _ string2: String) -> Bool {
     var mismatches = 0
     let array1 = Array(string1)
     let array2 = Array(string2)
@@ -46,8 +46,8 @@ func findCommonLetters(_ string: String) -> String {
     var resultString = ""
     var filtered: [String] = []
     
-    for ID in array {
-        filtered = array.filter() { filterString(ID, $0) }
+    for id in array {
+        filtered = array.filter() { onlyOneMismatch(id, $0) }
         if filtered.count > 1 { break }
     }
     
