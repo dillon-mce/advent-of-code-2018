@@ -104,7 +104,7 @@ assert(addOverlappingArea(test1) == 4)
 func findNoOverlaps(_ string: String) -> Claim? {
     let claims = parseInput(string)
     var noOverlaps: Set<Claim> = Set(claims)
-    for i in 0..<claims.count {
+    for i in 0..<claims.count-1 {
         for j in i+1..<claims.count {
             let claim1 = claims[i]
             let claim2 = claims[j]

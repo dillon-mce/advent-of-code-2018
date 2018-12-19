@@ -8,8 +8,8 @@ let underscores = Array(repeating: "—", count: day.count).joined()
 print("\n\(underscores)\n\(day)\n\(underscores)")
 
 // Part 1
-func findSleepyGuard1(_ string: String) -> Int {
-    let inputData = string.components(separatedBy: CharacterSet(charactersIn: "\n")).sorted()
+func parseInput(_ string: String) -> [String: [Date]] {
+    let inputData = string.components(separatedBy: .newlines).sorted()
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
     var currentGuard = ""
@@ -28,8 +28,12 @@ func findSleepyGuard1(_ string: String) -> Int {
         timestampDict[currentGuard, default: []].append(date)
     }
     
+    return timestampDict
+}
+
+func countMinutesAsleep(_ guardDict: [String: [Date]]) -> [String: Int] {
     var sleepCount: [String: Int] = [:]
-    for (key, value) in timestampDict {
+    for (key, value) in guardDict {
         for index in 0..<value.count-1 {
             if index % 2 == 0 {
                 let interval = DateInterval(start: value[index], end: value[index+1])
@@ -38,26 +42,36 @@ func findSleepyGuard1(_ string: String) -> Int {
             }
         }
     }
-    
-    guard let biggest = sleepCount.max(by: { $0.value < $1.value }) else { return -1 }
-    
-    
-    let sleepyGuardArray = timestampDict[biggest.key] ?? []
+    return sleepCount
+}
+
+func countTimesAsleepAtMinute(_ dates: [Date]) -> [Int: Int] {
     let minuteFormatter = DateFormatter()
     minuteFormatter.dateFormat = "mm"
     
     var minuteDict: [Int: Int] = [:]
     for minute in 0..<60 {
-        for index in 0..<sleepyGuardArray.count-1 {
+        for index in 0..<dates.count-1 {
             if index % 2 == 0 {
-                guard let fallAsleep = Int(minuteFormatter.string(from: sleepyGuardArray[index])),
-                    let wakeUp = Int(minuteFormatter.string(from: sleepyGuardArray[index+1])) else { continue }
+                guard let fallAsleep = Int(minuteFormatter.string(from: dates[index])),
+                    let wakeUp = Int(minuteFormatter.string(from: dates[index+1])) else { continue }
                 if minute >= fallAsleep && minute < wakeUp {
                     minuteDict[minute, default: 0] += 1
                 }
             }
         }
     }
+    return minuteDict
+}
+
+func findSleepyGuard1(_ string: String) -> Int {
+    let timestampDict = parseInput(string)
+    let sleepCount = countMinutesAsleep(timestampDict)
+
+    guard let biggest = sleepCount.max(by: { $0.value < $1.value }) else { return -1 }
+    
+    let sleepyGuardArray = timestampDict[biggest.key] ?? []
+    let minuteDict = countTimesAsleepAtMinute(sleepyGuardArray)
     
     guard let frequentlyAsleep = minuteDict.max(by: { $0.value < $1.value }) else { return -1 }
     
@@ -91,42 +105,12 @@ let test1 = """
 assert(findSleepyGuard1(test1) == 240)
 
 // Part 2
-func findSleepyGuard2(_ string: String) -> Int {
-    let inputData = string.components(separatedBy: CharacterSet(charactersIn: "\n")).sorted()
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-    var currentGuard = ""
-    var timestampDict: [String: [Date]] = [:]
-    
-    for i in 0..<inputData.count {
-        let components = inputData[i].components(separatedBy: CharacterSet(charactersIn: "[]"))
-        if components[2].hasPrefix(" Guard") {
-            let num = components[2].components(separatedBy: .whitespaces)[2]
-            currentGuard = num
-            continue
-        }
-        
-        guard let date = dateFormatter.date(from: components[1]) else { continue }
-        
-        timestampDict[currentGuard, default: []].append(date)
-    }
-    
-    var sleepCount: [String: Int] = [:]
-    for (key, value) in timestampDict {
-        for index in 0..<value.count-1 {
-            if index % 2 == 0 {
-                let interval = DateInterval(start: value[index], end: value[index+1])
-                let minutes = Int(interval.duration/60)
-                sleepCount[key, default: 0] += minutes
-            }
-        }
-    }
-    
+func countTimesAsleepAtMinute(_ dates: [String: [Date]]) -> [String: [Int: Int]] {
     let minuteFormatter = DateFormatter()
     minuteFormatter.dateFormat = "mm"
     
     var minuteDict: [String: [Int: Int]] = [:]
-    for (guardID, times) in timestampDict {
+    for (guardID, times) in dates {
         for minute in 0..<60 {
             for index in 0..<times.count-1 {
                 if index % 2 == 0 {
@@ -139,6 +123,12 @@ func findSleepyGuard2(_ string: String) -> Int {
             }
         }
     }
+    return minuteDict
+}
+
+func findSleepyGuard2(_ string: String) -> Int {
+    let timestampDict = parseInput(string)
+    let minuteDict = countTimesAsleepAtMinute(timestampDict)
     
     var mostMinutes: (key: Int, value: Int) = (0, 0)
     var consistentlySleepyGuard = ""
