@@ -111,17 +111,7 @@ func countTimesAsleepAtMinute(_ dates: [String: [Date]]) -> [String: [Int: Int]]
     
     var minuteDict: [String: [Int: Int]] = [:]
     for (guardID, times) in dates {
-        for minute in 0..<60 {
-            for index in 0..<times.count-1 {
-                if index % 2 == 0 {
-                    guard let fallAsleep = Int(minuteFormatter.string(from: times[index])),
-                        let wakeUp = Int(minuteFormatter.string(from: times[index+1])) else { continue }
-                    if minute >= fallAsleep && minute < wakeUp {
-                        minuteDict[guardID, default: [:]][minute, default: 0] += 1
-                    }
-                }
-            }
-        }
+        minuteDict[guardID] = countTimesAsleepAtMinute(times)
     }
     return minuteDict
 }
