@@ -110,7 +110,7 @@ enum Team: String {
 
 class Player: CustomStringConvertible {
     var location: Point
-    var health: Int = 300
+    var health: Int = 200
     let attackPower: Int = 3
     let team: Team
     var otherPlayers: [Point: Player] = [:]
@@ -136,57 +136,74 @@ class Player: CustomStringConvertible {
             return false
         }
         
-        // Calculate which points are in rage
-        var pointsInRange = Set<Point>()
-        for point in enemies.keys {
-            pointsInRange = pointsInRange.union(calculateInRange(point, gameBoard: gameBoard))
-        }
-        
-        let allReachablePoints = location.allReachablePoints(on: gameBoard)
-        let reachablePoints = allReachablePoints.intersection(pointsInRange)
-        //print(reachablePoints)
-        
-        var distance = 0
-        var queue: Queue<Point> = Queue()
-        queue.enqueue(location)
-        gameBoard.distances[location] = distance
-        
-        // Reset the gameboard
-        for point in allReachablePoints {
-            gameBoard.map[point] = .open
-        }
-        
-        // Figure out the distances to each reachable point
-        while let point = queue.dequeue() {
-            //print("Dequeued point: \(point).\nIt's neighbors are: \(point.neighbors)")
-            for neighboringPoint in point.neighbors {
-                if gameBoard.map[neighboringPoint] == .open && (gameBoard.distances[neighboringPoint] == nil || gameBoard.distances[point]! + 1 < gameBoard.distances[neighboringPoint]!) {
-                    queue.enqueue(neighboringPoint)
-                    gameBoard.distances[neighboringPoint] = gameBoard.distances[point, default: 0] + 1
-                }
+        // Move, if necessary
+        if !hasAdjacentEnemies(on: gameBoard) {
+            // Calculate which points are in range
+            var pointsInRange = Set<Point>()
+            for point in enemies.keys {
+                pointsInRange = pointsInRange.union(calculateInRange(point, gameBoard: gameBoard))
             }
+            
+            let allReachablePoints = location.allReachablePoints(on: gameBoard)
+            let reachablePoints = allReachablePoints.intersection(pointsInRange)
+            //print(reachablePoints)
+            
+            // Reset the gameboard
+            for point in allReachablePoints {
+                gameBoard.map[point] = .open
+            }
+            findDistancesFrom(location, on: gameBoard)
+            
+            let reachableDistances = gameBoard.distances.filter({ reachablePoints.contains( $0.key ) })
+            //print(reachableDistances)
+            
+            guard let minValue = reachableDistances.min(by: { $0.value < $1.value }) else {
+                //print("This player doesn't have any closest points to target.")
+                return true
+            }
+            
+            let nearestDistances = reachableDistances.filter { $0.value == minValue.value }
+            
+            let chosen = nearestDistances.min(by: { $0.key < $1.key })!
+            //print(chosen)
+            
+            gameBoard.distances = [:]
+            
+            // Find the shortest routes
+            findDistancesFrom(chosen.key, on: gameBoard)
+            let possibleMoves = gameBoard.distances.filter({ location.neighbors.contains( $0.key ) })
+            guard let shortest = possibleMoves.min(by: { $0.value < $1.value }) else { return true }
+            let acceptableMoves = possibleMoves.filter() { $0.value == shortest.value }
+            
+            guard let move = acceptableMoves.sorted(by: {$0.key < $1.key }).first else {
+                print("Couldn't find a valid move for this player.")
+                return true
+            }
+            moveTo(move.key, on: gameBoard)
+            gameBoard.distances = [:]
         }
         
-        let reachableDistances = gameBoard.distances.filter({ reachablePoints.contains( $0.key ) })
-        print(reachableDistances)
-        
-        guard let minValue = reachableDistances.min(by: { $0.value < $1.value }) else {
-            print("This player doesn't have any closest points to target.")
-            return true
+        // Attack, if possible.
+        if hasAdjacentEnemies(on: gameBoard) {
+            let target = pickAttackTarget(on: gameBoard)
+            attackTargetAt(target, on: gameBoard)
         }
-        
-        let nearestDistances = reachableDistances.filter { $0.value == minValue.value }
-        
-        let chosen = nearestDistances.min(by: { $0.key < $1.key })!
-        print(chosen)
-        
-        gameBoard.distances = [:]
-        
+    
         return true
     }
     
     func scanForTargets(){
         enemies = otherPlayers.filter() { $0.value.team != self.team }
+    }
+    
+    func hasAdjacentEnemies(on gameBoard: GameBoard) -> Bool {
+        for neighbor in location.neighbors {
+            if gameBoard.players[neighbor] != nil && gameBoard.players[neighbor]!.team != self.team {
+                //print("This guy has an adjacent enemy.")
+                return true
+            }
+        }
+        return false
     }
     
     func calculateInRange(_ point: Point, gameBoard: GameBoard) -> Set<Point> {
@@ -209,6 +226,57 @@ class Player: CustomStringConvertible {
         }
         
         return pointsInRange
+    }
+    
+    func findDistancesFrom(_ location: Point, on gameBoard: GameBoard) {
+        var distance = 0
+        var queue: Queue<Point> = Queue()
+        queue.enqueue(location)
+        gameBoard.distances[location] = distance
+        
+        // Figure out the distances to each reachable point
+        while let point = queue.dequeue() {
+            //print("Dequeued point: \(point).\nIt's neighbors are: \(point.neighbors)")
+            for neighboringPoint in point.neighbors {
+                if gameBoard.map[neighboringPoint] == .open && gameBoard.players[neighboringPoint] == nil && (gameBoard.distances[neighboringPoint] == nil || gameBoard.distances[point]! + 1 < gameBoard.distances[neighboringPoint]!) {
+                    queue.enqueue(neighboringPoint)
+                    gameBoard.distances[neighboringPoint] = gameBoard.distances[point, default: 0] + 1
+                }
+            }
+        }
+    }
+    
+    func moveTo(_ point: Point, on gameBoard: GameBoard) {
+        gameBoard.players[point] = self
+        gameBoard.players[location] = nil
+        self.location = point
+    }
+    
+    func pickAttackTarget(on gameBoard: GameBoard) -> Point {
+        var possibleTargets:  [Point: Player] = [:]
+        for neighbor in location.neighbors {
+            if let player = gameBoard.players[neighbor],  player.team != self.team {
+                possibleTargets[player.location] = player
+            }
+        }
+        let lowestHealth = possibleTargets.min(by: { $0.value.health < $1.value.health })!
+        
+        let filteredTargets = possibleTargets.filter() { $0.value.health == lowestHealth.value.health }
+        
+        return filteredTargets.sorted(by: { $0.key < $1.key }).first!.key
+    }
+    
+    func attackTargetAt(_ point: Point, on gameBoard: GameBoard) {
+        guard let target = gameBoard.players[point] else {
+            print("There wasn't an enemy on the board at \(point)")
+            return
+        }
+        
+        target.health -= attackPower
+        if target.health < 1 {
+            print("An \(target.team) died at \(target.location)")
+            gameBoard.players[point] = nil
+        }
     }
     
 }
@@ -299,37 +367,51 @@ func printMap(_ gameBoard: GameBoard) {
 func figureOutResultOfBattle(_ string: String) -> Int {
     var result = 0
     let gameBoard = parseInput(string)
+    var continueBattle = true
+    var count = 0
     
     printMap(gameBoard)
-    for (_, player) in gameBoard.players.sorted(by: { $0.key < $1.key }) {
-        player.takeTurn(gameBoard)
+    while continueBattle {
+        for key in gameBoard.players.keys.sorted(by: { $0 < $1 }) {
+            if let player = gameBoard.players[key] {
+                continueBattle = player.takeTurn(gameBoard)
+                if !continueBattle { break }
+            }
+        }
+        if continueBattle { count += 1 }
+        print("\nRound \(count)")
+        printMap(gameBoard)
     }
     
-    
+    result = gameBoard.players.values.reduce(0, { $0 + $1.health })
+    print("The sum of the remaining team's health is \(result)")
+    result *= count
+    print("The sum of the remaining team's health times the number of rounds completed (\(count)) is \(result)")
     return result
 }
 
 
 let test1 = """
-#########
-#G..G..G#
-#.......#
-#.......#
-#G..E..G#
-#.......#
-#.......#
-#G..G..G#
-#########
+#######
+#.G...#
+#...EG#
+#.#.#G#
+#..G#E#
+#.....#
+#######
 """
 
 let test2 = """
 #######
-#E..G.#
-#...#.#
-#.G.#G#
+#G..#E#
+#E#E.E#
+#G.##.#
+#...#E#
+#...E.#
 #######
 """
 
+assert(figureOutResultOfBattle(test1) == 27730)
 figureOutResultOfBattle(test2)
 //print(players.sorted(by: { $0.key < $1.key }))
 //assert(produceCheckSum(on: test1) == 12)
