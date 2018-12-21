@@ -111,7 +111,7 @@ enum Team: String {
 class Player: CustomStringConvertible {
     var location: Point
     var health: Int = 200
-    let attackPower: Int = 3
+    let attackPower: Int
     let team: Team
     var otherPlayers: [Point: Player] = [:]
     var enemies: [Point: Player] = [:]
@@ -120,9 +120,10 @@ class Player: CustomStringConvertible {
         return "\(team.rawValue.capitalized)"
     }
     
-    init(location: Point, team: Team) {
+    init(location: Point, team: Team, attackPower: Int = 3) {
         self.location = location
         self.team = team
+        self.attackPower = attackPower
     }
     
     func takeTurn(_ gameBoard: GameBoard) -> Bool {
@@ -146,7 +147,6 @@ class Player: CustomStringConvertible {
             
             let allReachablePoints = location.allReachablePoints(on: gameBoard)
             let reachablePoints = allReachablePoints.intersection(pointsInRange)
-            //print(reachablePoints)
             
             // Reset the gameboard
             for point in allReachablePoints {
@@ -155,17 +155,15 @@ class Player: CustomStringConvertible {
             findDistancesFrom(location, on: gameBoard)
             
             let reachableDistances = gameBoard.distances.filter({ reachablePoints.contains( $0.key ) })
-            //print(reachableDistances)
             
             guard let minValue = reachableDistances.min(by: { $0.value < $1.value }) else {
-                //print("This player doesn't have any closest points to target.")
+//                print("This player doesn't have any closest points to target.")
                 return true
             }
             
             let nearestDistances = reachableDistances.filter { $0.value == minValue.value }
             
             let chosen = nearestDistances.min(by: { $0.key < $1.key })!
-            //print(chosen)
             
             gameBoard.distances = [:]
             
@@ -179,6 +177,7 @@ class Player: CustomStringConvertible {
                 print("Couldn't find a valid move for this player.")
                 return true
             }
+            
             moveTo(move.key, on: gameBoard)
             gameBoard.distances = [:]
         }
@@ -198,8 +197,7 @@ class Player: CustomStringConvertible {
     
     func hasAdjacentEnemies(on gameBoard: GameBoard) -> Bool {
         for neighbor in location.neighbors {
-            if gameBoard.players[neighbor] != nil && gameBoard.players[neighbor]!.team != self.team {
-                //print("This guy has an adjacent enemy.")
+            if enemies[neighbor] != nil {
                 return true
             }
         }
@@ -229,14 +227,13 @@ class Player: CustomStringConvertible {
     }
     
     func findDistancesFrom(_ location: Point, on gameBoard: GameBoard) {
-        var distance = 0
+        gameBoard.distances = [:]
         var queue: Queue<Point> = Queue()
         queue.enqueue(location)
-        gameBoard.distances[location] = distance
+        gameBoard.distances[location] = 0
         
         // Figure out the distances to each reachable point
         while let point = queue.dequeue() {
-            //print("Dequeued point: \(point).\nIt's neighbors are: \(point.neighbors)")
             for neighboringPoint in point.neighbors {
                 if gameBoard.map[neighboringPoint] == .open && gameBoard.players[neighboringPoint] == nil && (gameBoard.distances[neighboringPoint] == nil || gameBoard.distances[point]! + 1 < gameBoard.distances[neighboringPoint]!) {
                     queue.enqueue(neighboringPoint)
@@ -255,7 +252,7 @@ class Player: CustomStringConvertible {
     func pickAttackTarget(on gameBoard: GameBoard) -> Point {
         var possibleTargets:  [Point: Player] = [:]
         for neighbor in location.neighbors {
-            if let player = gameBoard.players[neighbor],  player.team != self.team {
+            if let player = enemies[neighbor] {
                 possibleTargets[player.location] = player
             }
         }
@@ -274,7 +271,7 @@ class Player: CustomStringConvertible {
         
         target.health -= attackPower
         if target.health < 1 {
-            print("An \(target.team) died at \(target.location)")
+            print("An \(target.team) died at \(target.location) during round \(count)")
             gameBoard.players[point] = nil
         }
     }
@@ -322,7 +319,7 @@ class GameBoard {
     }
 }
 
-func parseInput(_ string: String) -> GameBoard {
+func parseInput(_ string: String, ap: Int = 3) -> GameBoard {
     let array = string.components(separatedBy: .newlines)
     var map: [Point: SpaceType] = [:]
     var players: [Point: Player] = [:]
@@ -337,7 +334,8 @@ func parseInput(_ string: String) -> GameBoard {
             
             if playerMarkers.contains(character) {
                 let team: Team = character == "E" ? .elf : .goblin
-                players[point] = Player(location: point, team: team)
+                let attackPower = character == "E" ? ap : 3
+                players[point] = Player(location: point, team: team, attackPower: attackPower)
             }
         }
     }
@@ -364,12 +362,15 @@ func printMap(_ gameBoard: GameBoard) {
     }
 }
 
+var count = 0
+
 func figureOutResultOfBattle(_ string: String) -> Int {
     var result = 0
     let gameBoard = parseInput(string)
     var continueBattle = true
-    var count = 0
+    count = 0
     
+    print("\nNew Battle")
     printMap(gameBoard)
     while continueBattle {
         for key in gameBoard.players.keys.sorted(by: { $0 < $1 }) {
@@ -379,9 +380,9 @@ func figureOutResultOfBattle(_ string: String) -> Int {
             }
         }
         if continueBattle { count += 1 }
-        print("\nRound \(count)")
-        printMap(gameBoard)
     }
+    print("\nRound \(count)")
+    printMap(gameBoard)
     
     result = gameBoard.players.values.reduce(0, { $0 + $1.health })
     print("The sum of the remaining team's health is \(result)")
@@ -411,33 +412,88 @@ let test2 = """
 #######
 """
 
+let test3 = """
+#######
+#E..EG#
+#.#G.E#
+#E.##E#
+#G..#.#
+#..E#.#
+#######
+"""
+
+let test4 = """
+#########
+#G......#
+#.E.#...#
+#..##..G#
+#...##..#
+#...#...#
+#.G...G.#
+#.....G.#
+#########
+"""
+
 assert(figureOutResultOfBattle(test1) == 27730)
-figureOutResultOfBattle(test2)
-//print(players.sorted(by: { $0.key < $1.key }))
-//assert(produceCheckSum(on: test1) == 12)
+assert(figureOutResultOfBattle(test2) == 36334)
+assert(figureOutResultOfBattle(test3) == 39514)
+assert(figureOutResultOfBattle(test4) == 18740)
 
 // Part 2
+func figureOutResultOfBattleWithExtraElfPower(_ string: String) -> Int {
+    var attackPower = 3
+    var keepChecking = true
+    var result = 0
+    
+    while keepChecking {
+        attackPower += 1
+        let gameBoard = parseInput(string, ap: attackPower)
+        var continueBattle = true
+        let numberOfElves = gameBoard.players.filter({ $0.value.team == .elf }).count
+        count = 0
+        
+        print("\nNew Battle")
+        printMap(gameBoard)
+        while continueBattle {
+            for key in gameBoard.players.keys.sorted(by: { $0 < $1 }) {
+                if let player = gameBoard.players[key] {
+                    continueBattle = player.takeTurn(gameBoard)
+                    if !continueBattle { break }
+                }
+            }
+            if continueBattle { count += 1 }
+        }
+        print("\nRound \(count)")
+        printMap(gameBoard)
+        
+        result = gameBoard.players.values.reduce(0, { $0 + $1.health })
+        print("The sum of the remaining team's health is \(result)")
+        result *= count
+        print("When the elves attack power is \(attackPower), the sum of the remaining team's health times the number of rounds completed (\(count)) is \(result)")
+        keepChecking = gameBoard.players.filter({ $0.value.team == .elf }).count != numberOfElves
+    }
+    
+    return result
+}
+
+assert(figureOutResultOfBattleWithExtraElfPower(test1) == 4988)
 
 
-//assert(answerPart2(test2) == "")
-
-//func findAnswers(_ string: String) {
-//    var string = string
-//    if string.isEmpty { string = test1 }
-//    
-//    var startTime = CFAbsoluteTimeGetCurrent()
-//    // update function here
-//    let answer1 = produceCheckSum(on: string)
-//    print("Part 1 Answer: \(answer1)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
-//    
-//    if string == test1 { string = test2 }
-//    
-//    startTime = CFAbsoluteTimeGetCurrent()
-//    // update function here
-//    let answer2 = answerPart2(string)
-//    print("Part 2 Answer: \(answer2)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
-//}
+func findAnswers(_ string: String) {
+    var string = string
+    if string.isEmpty { string = test1 }
+    
+    var startTime = CFAbsoluteTimeGetCurrent()
+    let answer1 = figureOutResultOfBattle(string)
+    print("Part 1 Answer: \(answer1)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
+    
+    if string == test1 { string = test2 }
+    
+    startTime = CFAbsoluteTimeGetCurrent()
+    let answer2 = figureOutResultOfBattleWithExtraElfPower(string)
+    print("Part 2 Answer: \(answer2)\nFound in \(CFAbsoluteTimeGetCurrent() - startTime) seconds\n")
+}
 
 
-//findAnswers(input)
+findAnswers(input)
 
