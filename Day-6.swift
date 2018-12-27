@@ -17,7 +17,7 @@ struct Point: Hashable {
     }
 }
 
-func calculateLargestArea(_ string: String) -> Int {
+func parseInput(_ string: String) -> [Point] {
     let array = string.components(separatedBy: CharacterSet(charactersIn: "\n"))
     
     let pointArray = array.compactMap() { string -> Point? in
@@ -26,6 +26,13 @@ func calculateLargestArea(_ string: String) -> Int {
         let point = Point(x: x, y: y)
         return point
     }
+    
+    return pointArray
+}
+
+func calculateLargestArea(_ string: String) -> Int {
+    let pointArray = parseInput(string)
+    
     guard let maxX = pointArray.max(by: { $0.x < $1.x }), let maxY = pointArray.max(by: { $0.y < $1.y }), let minX = pointArray.min(by: { $0.x < $1.x }), let minY = pointArray.min(by: { $0.y < $1.y }) else { return -1 }
     
     var areaDict: [Point: [Point]] = [:]
@@ -68,14 +75,8 @@ assert(calculateLargestArea(test1) == 17)
 
 // Part 2
 func calculateLargestArea(_ string: String, targetValue: Int) -> Int {
-    let array = string.components(separatedBy: CharacterSet(charactersIn: "\n"))
+    let pointArray = parseInput(string)
     
-    let pointArray = array.compactMap() { string -> Point? in
-        let array = string.components(separatedBy: .punctuationCharacters).joined().components(separatedBy: .whitespaces)
-        guard array.count > 1, let x = Int(array[0]), let y = Int(array[1]) else { return nil }
-        let point = Point(x: x, y: y)
-        return point
-    }
     guard let maxX = pointArray.max(by: { $0.x < $1.x }), let maxY = pointArray.max(by: { $0.y < $1.y }), let minX = pointArray.min(by: { $0.x < $1.x }), let minY = pointArray.min(by: { $0.y < $1.y }) else { return -1 }
     
     var safePoints: Set<Point> = Set()
