@@ -8,23 +8,23 @@ let underscores = Array(repeating: "—", count: day.count).joined()
 print("\n\(underscores)\n\(day)\n\(underscores)")
 
 // Part 1
-func figureOutOrder(_ string: String) -> String {
-    let array = string.components(separatedBy: CharacterSet(charactersIn: "\n"))
+func parseInput(_ string: String) -> ([String: [String]], [String]) {
+    let array = string.components(separatedBy: .newlines)
     var dependencyDict: [String: [String]] = [:]
-    var letterArray: [String] = []
     var letterSet: Set<String> = Set()
     for line in array {
         let letters = line.components(separatedBy: .whitespaces).filter() { $0.count == 1 }
         dependencyDict[letters[1], default: []].append(letters[0])
-        for i in 0...1 {
-            if !letterSet.contains(letters[i]) {
-                letterSet.insert(letters[i])
-                letterArray.append(letters[i])
-            }
-        }
-        
+        letterSet.insert(letters[0])
+        letterSet.insert(letters[1])
     }
-    letterArray.sort()
+    let letterArray = Array(letterSet).sorted()
+    return (dependencyDict, letterArray)
+}
+
+func figureOutOrder(_ string: String) -> String {
+    var (dependencyDict, letterArray) = parseInput(string)
+    
     var completedSet: Set<String> = Set()
     var results: [String] = []
     while letterArray.count > 0 {
@@ -52,7 +52,6 @@ Step D must be finished before step E can begin.
 Step F must be finished before step E can begin.
 """
 
-
 assert(figureOutOrder(test1) == "CABDFE")
 
 // Part 2
@@ -70,9 +69,9 @@ func setupLetterValueDictionary(_ offset: Int) -> [String: Int] {
 class Queue<T> {
     private var queue: [T] = []
     
-    var tasksRemaining: Int {
-        return queue.count
-    }
+//    var tasksRemaining: Int {
+//        return queue.count
+//    }
     
     var currentlyWorkingOn: T? {
         return queue.first
@@ -89,36 +88,17 @@ class Queue<T> {
             queue.remove(at: 0)
         }
     }
-    
-    
 }
 
 func figureTimeWithMultipleWorkers(_ string: String, timeAddition: Int, numOfWorkers: Int) -> Int {
-    let array = string.components(separatedBy: CharacterSet(charactersIn: "\n"))
-    var dependencyDict: [String: [String]] = [:]
-    var letterArray: [String] = []
-    var letterSet: Set<String> = Set()
+    var (dependencyDict, letterArray) = parseInput(string)
     let letterValueDict = setupLetterValueDictionary(timeAddition)
-    for line in array {
-        let letters = line.components(separatedBy: .whitespaces).filter() { $0.count == 1 }
-        dependencyDict[letters[1], default: []].append(letters[0])
-        for i in 0...1 {
-            if !letterSet.contains(letters[i]) {
-                letterSet.insert(letters[i])
-                letterArray.append(letters[i])
-            }
-        }
-        
-    }
-    letterArray.sort()
     var queues: [Queue<String>] = []
     for _ in 0..<numOfWorkers {
         queues.append(Queue())
     }
-    //print("Letters to complete: \(letterArray), count: \(letterArray.count)")
     var completedSet: Set<String> = Set()
     var currentlyWorkingOn: Set<String> = Set()
-    var results: [String] = []
     var result: Int = 0
     while letterArray.count > 0 {
         for queue in queues {
@@ -127,7 +107,6 @@ func figureTimeWithMultipleWorkers(_ string: String, timeAddition: Int, numOfWor
             if previouslyWorking != queue.currentlyWorkingOn {
                 if let previouslyWorking = previouslyWorking {
                     completedSet.insert(previouslyWorking)
-                    results.append(previouslyWorking)
                 }
             }
         }
@@ -148,9 +127,6 @@ func figureTimeWithMultipleWorkers(_ string: String, timeAddition: Int, numOfWor
         }
         result += 1
     }
-    
-    //print("Answer: \(result)")
-    //print("Final order: \(results.joined())")
     return result
 }
 
