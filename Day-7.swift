@@ -69,10 +69,6 @@ func setupLetterValueDictionary(_ offset: Int) -> [String: Int] {
 class Queue<T> {
     private var queue: [T] = []
     
-//    var tasksRemaining: Int {
-//        return queue.count
-//    }
-    
     var currentlyWorkingOn: T? {
         return queue.first
     }
@@ -117,7 +113,7 @@ func figureTimeWithMultipleWorkers(_ string: String, timeAddition: Int, numOfWor
             if (dependencies == nil || dependencies == []) && !currentlyWorkingOn.contains(letter) {
                 for queue in queues {
                     if queue.currentlyWorkingOn == nil {
-                        let times = letterValueDict[letter] ?? 0
+                        let times = letterValueDict[letter]!
                         queue.push(letter, times: times)
                         currentlyWorkingOn.insert(letter)
                         break
